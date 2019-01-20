@@ -9,5 +9,10 @@ Matrix representation in linux term just as in "The Matrix" film
 
 `./tm`
 
+# Debug matrix
+
+`make debug`
+`gdb dtm`
+
 # Clean-up
 `make clean`
