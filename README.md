@@ -8,3 +8,6 @@ Matrix representation in linux term just as in "The Matrix" film
 `make`
 
 `./tm`
+
+# Clean-up
+`make clean`
