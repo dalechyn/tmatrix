@@ -9,6 +9,7 @@
 #include <malloc.h>
 #include <time.h>
 
+#define dig_length 14
 #define symb_count 72
 
 struct Digital {
@@ -27,14 +28,15 @@ wchar_t randomChar(wchar_t chars[symb_count]) {
 }
 
 wchar_t * generateRain(wchar_t chars[symb_count], int length) {
-  wchar_t * arr = malloc(length * sizeof(wchar_t));
+  wchar_t * arr = malloc(length * sizeof(wchar_t) + 1);
   for(int i = 0; i < length; i++)
     arr[i] = randomChar(chars);
+  arr[length] = '\0';
   return arr;
 }
 
 void randomizeDL(struct Digital * line, wchar_t chars[symb_count]) {
-  for(int i = 0; i < symb_count; i++)
+  for(int i = 0; i < dig_length; i++)
     //mixing chars with 33% chance
     if(get_rand_in_range(0, 2) == 0)
       line->data[i] = randomChar(chars);
@@ -49,26 +51,28 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
     for(int i = 0; i < symb_count - 1; i++) line->data[i + 1] = line->data[i];
     line->data[0] = randomChar(chars);
     //creating color buffer
-    wchar_t buff[50];
-    swprintf(buff, 2, L"%s%s", "\033[01;38;05;15m", line->data[0]);
+    int buffSize = 50;
+    wchar_t * buff = malloc(buffSize * sizeof(wchar_t));
+    swprintf(buff, buffSize * sizeof(wchar_t), L"%s%s", L"\033[01;38;05;15m", line->data[0]);
     //printing first white bold symbol
     mvaddwstr(line->head, line->x, buff);
     //next two symbols are also white but not bold
     if(line->head - 1 >= 0 && line->head - 1 < y_size) {
-      swprintf(buff, 2, L"%s%s", "\033[38;05;15m", line->data[1]);
+      swprintf(buff, buffSize * sizeof(wchar_t), L"%s%s", L"\033[38;05;15m", line->data[1]);
       mvaddwstr(line->head - 1, line->x, buff);
     }
     if(line->head - 2 >= 0 && line->head - 2 < y_size) {
-      swprintf(buff, 2, L"%s%s", "\033[38;05;15m", line->data[2]);
+      swprintf(buff, buffSize * sizeof(wchar_t), L"%s%s", L"\033[38;05;15m", line->data[2]);
       mvaddwstr(line->head - 2, line->x, buff);
     }
     //other are green unbold
     for(int i = 3; i < symb_count; i++) {
       if(line->head - i > 0 && line->head - i < y_size) {
-        swprintf(buff, 2, L"%s%s", "\033[38;05;46m", line->data[i]);
+        swprintf(buff, buffSize * sizeof(wchar_t), L"%s%s", L"\033[38;05;46m", line->data[i]);
         mvaddwstr(line->head - i, line->x, buff);
       }
     }
+    free(buff);
   }
 }
 
@@ -105,7 +109,7 @@ int main() {
   // init digital lines columns
   for(int j = 0; j < max_x; j++) {
     int l = get_rand_in_range(0, max_y);
-    digitals[j] = (struct Digital){j, get_rand_in_range(-10, -1), l, generateRain(chars, l)};
+    digitals[j] = (struct Digital){j, get_rand_in_range(-10, -1), l, generateRain(chars, dig_length)};
   }
 
   while(1) {
