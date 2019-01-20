@@ -1,6 +1,8 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ncurses.h>
+#include <ncursesw/curses.h>
 #include <wchar.h>
 #include <locale.h>
 #include <malloc.h>
@@ -9,20 +11,64 @@
 #define symb_count 72
 
 struct Digital {
+  int x;
   int head;
   int length;
   wchar_t * data;
 };
 
-wchar_t * randomChars(wchar_t chars[symb_count], int length) {
+int get_rand_in_range(int min, int max) {
+  return (rand() % ((max + 1) - min) + min);
+}
+
+wchar_t randomChar(wchar_t chars[symb_count]) {
+  return chars[get_rand_in_range(0, symb_count - 1)];
+}
+
+wchar_t * generateRain(wchar_t chars[symb_count], int length) {
   wchar_t * arr = malloc(length * sizeof(wchar_t));
   for(int i = 0; i < length; i++)
-    arr[i] = chars[get_rand_in_range(0, symb_count - 1)];
+    arr[i] = randomChar(chars);
   return arr;
 }
 
-int get_rand_in_range(int min, int max) {
-  return (rand() % ((max + 1) - min) + min);
+void randomizeDL(struct Digital * line, wchar_t chars[symb_count]) {
+  for(int i = 0; i < symb_count; i++)
+    //mixing chars with 33% chance
+    if(get_rand_in_range(0, 2) == 0)
+      line->data[i] = randomChar(chars);
+}
+
+void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count]) {
+  line->head++;
+  //mixing DL
+  randomizeDL(line, chars);
+  if(line->head >= 0 && line->head < y_size) {
+    //move all symbols by 1 to create empty space at the 0
+    for(int i = 0; i < symb_count - 1; i++) line->data[i + 1] = line->data[i];
+    line->data[0] = randomChar(chars);
+    //creating color buffer
+    wchar_t buff[2];
+    swprintf(buff, 2, L"%s%s", "\033[01;38;05;15m", line->data[0]);
+    //printing first white bold symbol
+    mvaddwstr(line->head, line->x, buff);
+    //next two symbols are also white but not bold
+    if(line->head - 1 >= 0 && line->head - 1 < y_size) {
+      swprintf(buff, 2, L"%s%s", "\033[38;05;15m", line->data[1]);
+      mvaddwstr(line->head - 1, line->x, buff);
+    }
+    if(line->head - 2 >= 0 && line->head - 2 < y_size) {
+      swprintf(buff, 2, L"%s%s", "\033[38;05;15m", line->data[2]);
+      mvaddwstr(line->head - 2, line->x, buff);
+    }
+    //other are green unbold
+    for(int i = 3; i < symb_count; i++) {
+      if(line->head - i > 0 && line->head - i < y_size) {
+        swprintf(buff, 2, L"%s%s", "\033[38;05;46m", line->data[i]);
+        mvaddwstr(line->head - i, line->x, buff);
+      }
+    }
+  }
 }
 
 int main() {
@@ -36,7 +82,6 @@ int main() {
     L'¦', L'｜', L'╌', L'ç', L'ﾘ', L'ｸ'
   };
 
-  struct Digital digitals[50];
   //Random numbers seed
   srand(time(NULL));
   setlocale(LC_ALL, "");
@@ -48,14 +93,28 @@ int main() {
   curs_set(0);
 
   start_color();
+  init_pair(1, COLOR_GREEN, COLOR_BLACK);
+  attron(COLOR_PAIR(1));
 
   int max_x = 0, max_y = 0;
   getmaxyx(stdscr, max_y, max_x);
   
+  struct Digital * digitals = malloc(sizeof(struct Digital) * max_x);
+
   // init digital lines columns
   for(int j = 0; j < max_x; j++) {
     int l = get_rand_in_range(0, max_y);
-    digitals[j] = (struct Digital){-1, l, randomChars(chars, l)};
+    digitals[j] = (struct Digital){j, get_rand_in_range(-10, -1), l, generateRain(chars, l)};
+  }
+
+  while(1) {
+    //going through all digital lines
+    for(int i = 0; i < max_x; i++) {
+      //print them
+      moveAndDrawDL(digitals + i, max_y, chars);
+    }
+    usleep(40000);
+    refresh(); 
   }
 
   endwin();
