@@ -1,3 +1,9 @@
-// My debug script
+// Compile output
 tm
 tmatrix.o
+
+// Debug output
+dtm
+
+// Dot files
+.*

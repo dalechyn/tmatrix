@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <ncurses.h>
 #include <ncursesw/curses.h>
@@ -18,7 +19,7 @@ struct Digital {
 };
 
 int get_rand_in_range(int min, int max) {
-  return (rand() % ((max + 1) - min) + min);
+  return (random() % ((max + 1) - min) + min);
 }
 
 wchar_t randomChar(wchar_t chars[symb_count]) {
@@ -48,7 +49,7 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
     for(int i = 0; i < symb_count - 1; i++) line->data[i + 1] = line->data[i];
     line->data[0] = randomChar(chars);
     //creating color buffer
-    wchar_t buff[2];
+    wchar_t buff[50];
     swprintf(buff, 2, L"%s%s", "\033[01;38;05;15m", line->data[0]);
     //printing first white bold symbol
     mvaddwstr(line->head, line->x, buff);
@@ -83,7 +84,7 @@ int main() {
   };
 
   //Random numbers seed
-  srand(time(NULL));
+  srandom(time(NULL));
   setlocale(LC_ALL, "");
 
   wprintf(L"%sWhy? 为什么？\n", "\033[01;38;05;46m");
