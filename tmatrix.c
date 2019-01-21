@@ -11,6 +11,7 @@
 
 #define dig_length 14
 #define symb_count 72
+#define speed_delay 4000000
 
 struct Digital {
   int x;
@@ -18,6 +19,13 @@ struct Digital {
   int length;
   wchar_t * data;
 };
+
+void colorizeSymbol(wchar_t * destination, wchar_t c, wchar_t * prefix) {
+  const int sizePrefix = wcslen(prefix) * sizeof(wchar_t);
+  memcpy(destination, prefix, sizePrefix);
+  destination[sizePrefix] = c;
+  destination[sizePrefix + 1] = L'\n';
+}
 
 int get_rand_in_range(int min, int max) {
   return (random() % ((max + 1) - min) + min);
@@ -31,7 +39,7 @@ wchar_t * generateRain(wchar_t chars[symb_count], int length) {
   wchar_t * arr = malloc(length * sizeof(wchar_t) + 1);
   for(int i = 0; i < length; i++)
     arr[i] = randomChar(chars);
-  arr[length] = '\0';
+  arr[length] = L'\0';
   return arr;
 }
 
@@ -50,29 +58,27 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
     //move all symbols by 1 to create empty space at the 0
     for(int i = 0; i < symb_count - 1; i++) line->data[i + 1] = line->data[i];
     line->data[0] = randomChar(chars);
-    //creating color buffer
-    int buffSize = 50;
-    wchar_t * buff = malloc(buffSize * sizeof(wchar_t));
-    swprintf(buff, buffSize * sizeof(wchar_t), L"%s%s", L"\033[01;38;05;15m", line->data[0]);
+    //initializing color buffer, it has fixed size of 68 bytes
+    wchar_t buff[18];
     //printing first white bold symbol
+    colorizeSymbol(buff, line->data[0], L"\033[01;38;05;15m");
     mvaddwstr(line->head, line->x, buff);
     //next two symbols are also white but not bold
     if(line->head - 1 >= 0 && line->head - 1 < y_size) {
-      swprintf(buff, buffSize * sizeof(wchar_t), L"%s%s", L"\033[38;05;15m", line->data[1]);
+      colorizeSymbol(buff, line->data[1], L"\033[38;05;15m");
       mvaddwstr(line->head - 1, line->x, buff);
     }
     if(line->head - 2 >= 0 && line->head - 2 < y_size) {
-      swprintf(buff, buffSize * sizeof(wchar_t), L"%s%s", L"\033[38;05;15m", line->data[2]);
+      colorizeSymbol(buff, line->data[2], L"\033[38;05;15m");
       mvaddwstr(line->head - 2, line->x, buff);
     }
     //other are green unbold
     for(int i = 3; i < symb_count; i++) {
       if(line->head - i > 0 && line->head - i < y_size) {
-        swprintf(buff, buffSize * sizeof(wchar_t), L"%s%s", L"\033[38;05;46m", line->data[i]);
+        colorizeSymbol(buff, line->data[i], L"\033[38;05;46m");
         mvaddwstr(line->head - i, line->x, buff);
       }
     }
-    free(buff);
   }
 }
 
@@ -92,14 +98,35 @@ int main() {
   setlocale(LC_ALL, "");
 
   wprintf(L"%sWhy? 为什么？\n", "\033[01;38;05;46m");
+
   
   initscr();
   noecho();
   curs_set(0);
 
-  start_color();
-  init_pair(1, COLOR_GREEN, COLOR_BLACK);
-  attron(COLOR_PAIR(1));
+  if (has_colors()) {
+    start_color();
+    if (use_default_colors() != ERR) {
+      init_pair(COLOR_BLACK, -1, -1);
+      init_pair(COLOR_GREEN, COLOR_GREEN, -1);
+      init_pair(COLOR_WHITE, COLOR_WHITE, -1);
+      init_pair(COLOR_RED, COLOR_RED, -1);
+      init_pair(COLOR_CYAN, COLOR_CYAN, -1);
+      init_pair(COLOR_MAGENTA, COLOR_MAGENTA, -1);
+      init_pair(COLOR_BLUE, COLOR_BLUE, -1);
+       init_pair(COLOR_YELLOW, COLOR_YELLOW, -1);
+    } else {
+      init_pair(COLOR_BLACK, COLOR_BLACK, COLOR_BLACK);
+      init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);
+      init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
+      init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);
+      init_pair(COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);
+      init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
+      init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+      init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
+      }
+    }
+
 
   int max_x = 0, max_y = 0;
   getmaxyx(stdscr, max_y, max_x);
@@ -118,7 +145,7 @@ int main() {
       //print them
       moveAndDrawDL(digitals + i, max_y, chars);
     }
-    usleep(40000);
+    usleep(speed_delay);
     refresh(); 
   }
 
