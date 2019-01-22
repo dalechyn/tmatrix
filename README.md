@@ -16,6 +16,10 @@ If you have no folder for local repos:
 
 `./tm`
 
+If you close matrix with Ctrl+C, don't forget to clean the terminal! 
+
+`clear`
+
 # Install dependencies:
 `make install`
 
