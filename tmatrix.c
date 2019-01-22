@@ -13,10 +13,16 @@
 #define symb_count 72
 #define speed_delay 80000
 
+#define COLOR_GREEN "\033[00;38;05;46m"
+#define COLOR_BOLD_WHITE "\033[01;38;05;15m"
+#define COLOR_WHITE "\033[00;38;05;15m"
+
 struct Digital {
   int x;
   int head;
   int length;
+  int tick;
+  int speed;
   wchar_t * data;
 };
 
@@ -61,35 +67,54 @@ void randomizeDL(struct Digital * line, wchar_t chars[symb_count]) {
       line->data[i] = randomChar(chars);
 }
 
-void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count]) {
-  int pseudo_async = get_rand_in_range(0, 4) == 0;
-  if(pseudo_async) line->head++;
+void outSymb(int x, int y, char * prefix, wchar_t symb) {
+  wprintf(L"\n\033[%d;%dH%s%lc\n", y, x, prefix, symb);
+}
+
+int moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count]) {
+  line->tick++;
+  int willMove = 0;
+  //draw operations are made on 0-4st elements in line
+  if(line->tick == line->speed) {
+    willMove = 1;
+    line->head++;
+    line->tick = 0;
+  }
   //mixing DL
   randomizeDL(line, chars);
-  if(line->head >= 0) {
+  if(line->head >= 0 && willMove) {
     //move all symbols by 1 to create empty space at the 0
-    if(pseudo_async) {
-      for(int i = line->length - 1; i >= 1; i--) line->data[i] = line->data[i - 1];
-      line->data[0] = randomChar(chars);
-    }
+    for(int i = line->length - 1; i >= 1; i--) line->data[i] = line->data[i - 1];
+    line->data[0] = randomChar(chars);
     //printing first white bold symbol
     //gotoxy(line->x, line->head);
     if(line->head < y_size - 1)
-      wprintf(L"\n\033[%d;%dH%s%lc\n", line->head, line->x, "\033[01;38;05;15m", line->data[0]);
+      outSymb(line->x, line->head, COLOR_BOLD_WHITE, line->data[0]);
     //next two symbols are also white but not bold
-    if(line->head - 1 >= 0 && line->head - 1 < y_size - 1) {
-      wprintf(L"\n\033[%d;%dH%s%lc\n", line->head - 1, line->x, "\033[00;38;05;15m", line->data[1]);
-    }
-    if(line->head - 2 >= 0 && line->head - 2 < y_size - 1) {
-       wprintf(L"\n\033[%d;%dH%s%lc\n", line->head - 2, line->x, "\033[00;38;05;15m", line->data[2]);
+    if(line->head - 1 >= 0 && line->head - 1 < y_size - 1)
+      outSymb(line->x,line->head - 1, COLOR_WHITE, line->data[1]);
+
+    if(line->head - 2 >= 0 && line->head - 2 < y_size - 1)
+      outSymb(line->x, line->head - 2, COLOR_WHITE, line->data[2]);
+
+    //printing green symb
+    if(line->head - 3 >= 0 && line->head - 3 < y_size - 1)
+      outSymb(line->x, line->head - 3, COLOR_GREEN, line->data[3]);
+
+    //erasing last symb and checking if last symbol not visible - redefine line
+    if(line->head - line->length >= 0) {
+      outSymb(line->x, line->head - line->length, "", L' ');
+    } else if(line->head - line->length < y_size - 1 && line->head > y_size - 1) { //means it's under screen 
+      return 1;
     }
     //other are green unbold
-    for(int i = 3; i < line->length; i++) {
+    /*for(int i = 3; i < line->length; i++) {
       if(line->head - i > 0 && line->head - i < y_size - 1) {
-        wprintf(L"\n\033[%d;%dH%s%lc\n", line->head - i, line->x, "\033[00;38;05;46m", line->data[i]);
+        wprintf(L"\n\033[%d;%dH%s%lc\n", line->head - i, line->x, COLOR_GREEN, line->data[i]);
       }
-    }
+    }*/
   }
+  return 0;
 }
 
 int main() {
@@ -112,20 +137,24 @@ int main() {
   
   struct Digital * digitals = malloc(sizeof(struct Digital) * max_x);
 
+  system("tput reset");
   // init digital lines columns
   for(int j = 0; j <= max_x; j++) {
     int l = get_rand_in_range(5, max_y/2);
-    digitals[j] = (struct Digital){j, get_rand_in_range(-30, -1), l, generateRain(chars, dig_length)};
+    digitals[j] = (struct Digital){j, get_rand_in_range(-30, -1), l, 0, get_rand_in_range(1, 6), generateRain(chars, dig_length)};
   }
 
   while(1) {
     //going through all digital lines
     for(int i = 0; i < max_x; i++) {
-      //print them
-      moveAndDrawDL(digitals + i, max_y, chars);
+      //print them, if line ended, redefine it
+      if(moveAndDrawDL(digitals + i, max_y, chars)) {
+        int l = get_rand_in_range(5, max_y/2);
+        digitals[i] = (struct Digital){i, get_rand_in_range(-30, -1), l, 0, get_rand_in_range(1, 6), generateRain(chars, dig_length)};
+      }
     }
     usleep(speed_delay);
-    system("tput reset"); 
+    //system("tput reset"); 
   }
 
   return 0;
