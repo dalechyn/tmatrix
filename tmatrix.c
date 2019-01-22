@@ -62,13 +62,16 @@ void randomizeDL(struct Digital * line, wchar_t chars[symb_count]) {
 }
 
 void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count]) {
-  line->head++;
+  int pseudo_async = get_rand_in_range(0, 4) == 0;
+  if(pseudo_async) line->head++;
   //mixing DL
   randomizeDL(line, chars);
   if(line->head >= 0) {
     //move all symbols by 1 to create empty space at the 0
-    for(int i = line->length - 1; i >= 1; i--) line->data[i] = line->data[i - 1];
-    line->data[0] = randomChar(chars);
+    if(pseudo_async) {
+      for(int i = line->length - 1; i >= 1; i--) line->data[i] = line->data[i - 1];
+      line->data[0] = randomChar(chars);
+    }
     //printing first white bold symbol
     //gotoxy(line->x, line->head);
     if(line->head < y_size - 1)
