@@ -33,10 +33,6 @@ void getTermSize(int *x, int *y) {
   *y = w.ws_row;
 }
 
-void gotoxy(int col, int row) {
-  printf("\n\033[%d;%dH", row, col);
-}
-
 void colorizeSymbol(wchar_t * destination, wchar_t c, wchar_t * prefix) {
   const int sizePrefix = wcslen(prefix) * sizeof(wchar_t);
   memcpy(destination, prefix, sizePrefix);
@@ -65,7 +61,7 @@ void outSymb(int x, int y, char * prefix, wchar_t symb) {
 }
 
 void randomizeDL(struct Digital * line, wchar_t chars[symb_count], int y_size) {
-  for(int i = 0; i < dig_length; i++)
+  for(int i = 0; i < line->length; i++)
     //mixing chars with 10% chance, also check if it's visible
     if(get_rand_in_range(0, 9) == 0 && line->head - i > 0 && line->head - i < y_size - 1) {
       line->data[i] = randomChar(chars);
@@ -88,33 +84,34 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
   if(line->head - line->length >= y_size - 1) {
     //if so respawn
     //free its data
+    int l = get_rand_in_range(5, y_size / 2);
     free(line->data);
-    line->length = get_rand_in_range(5, y_size / 2);
+    line->length = l;
     line->head = get_rand_in_range(-30, -1);
     line->speed = get_rand_in_range(1, 6);
     line->tick = 0;
-    line->data = generateRain(chars, dig_length);
+    line->data = generateRain(chars, l);
   }
 
   //mixing DL
   randomizeDL(line, chars, y_size);
-  if(line->head >= 0 && willMove) {
+  if(line->head > 0 && willMove) {
             //move all symbols by 1 to create empty space at the 0
     for(int i = line->length - 1; i >= 1; i--) line->data[i] = line->data[i - 1];
     line->data[0] = randomChar(chars);
     //printing first white bold symbol
     //gotoxy(line->x, line->head);
-    if(line->head < y_size - 1)
+    if(line->head > 0 && line->head < y_size - 1)
       outSymb(line->x, line->head, COLOR_BOLD_WHITE, line->data[0]);
     //next two symbols are also white but not bold
-    if(line->head - 1 >= 0 && line->head - 1 < y_size - 1)
+    if(line->head - 1 > 0 && line->head - 1 < y_size - 1)
       outSymb(line->x,line->head - 1, COLOR_WHITE, line->data[1]);
 
-    if(line->head - 2 >= 0 && line->head - 2 < y_size - 1)
+    if(line->head - 2 > 0 && line->head - 2 < y_size - 1)
       outSymb(line->x, line->head - 2, COLOR_WHITE, line->data[2]);
 
     //printing green symb
-    if(line->head - 3 >= 0 && line->head - 3 < y_size - 1)
+    if(line->head - 3 > 0 && line->head - 3 < y_size - 1)
       outSymb(line->x, line->head - 3, COLOR_GREEN, line->data[3]);
 
     //erasing last symb and checking if last symbol not visible - redefine line
@@ -141,14 +138,12 @@ int main() {
 
   int max_x = 0, max_y = 0;
   getTermSize(&max_x, &max_y);
-  
   struct Digital * digitals = malloc(sizeof(struct Digital) * max_x);
-
   system("tput reset");
   // init digital lines columns
-  for(int j = 0; j <= max_x; j++) {
+  for(int j = 1; j <= max_x; j++) {
     int l = get_rand_in_range(5, max_y/2);
-    digitals[j] = (struct Digital){j, get_rand_in_range(-30, -1), l, 0, get_rand_in_range(1, 6), generateRain(chars, dig_length)};
+    digitals[j - 1] = (struct Digital){j,  get_rand_in_range(-30, -1), l, 0, get_rand_in_range(1, 6), generateRain(chars, l)};
   }
 
   while(1) {
