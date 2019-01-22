@@ -9,9 +9,8 @@
 #include <malloc.h>
 #include <time.h>
 
-#define dig_length 14
 #define symb_count 72
-#define speed_delay 80000
+#define speed_delay 100000
 
 #define COLOR_GREEN "\033[00;38;05;46m"
 #define COLOR_BOLD_WHITE "\033[01;38;05;15m"
@@ -62,8 +61,8 @@ void outSymb(int x, int y, char * prefix, wchar_t symb) {
 
 void randomizeDL(struct Digital * line, wchar_t chars[symb_count], int y_size) {
   for(int i = 0; i < line->length; i++)
-    //mixing chars with 10% chance, also check if it's visible
-    if(get_rand_in_range(0, 9) == 0 && line->head - i > 0 && line->head - i < y_size - 1) {
+    //mixing chars with 5% chance, also check if it's visible
+    if(get_rand_in_range(0, 19) == 0 && line->head - i > 0 && line->head - i < y_size - 1) {
       line->data[i] = randomChar(chars);
       //redraw it 
       outSymb(line->x, line->head - i, (i > 2 ? COLOR_GREEN : (i > 0 ? COLOR_WHITE  : COLOR_BOLD_WHITE)), line->data[i]);
@@ -115,7 +114,7 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
       outSymb(line->x, line->head - 3, COLOR_GREEN, line->data[3]);
 
     //erasing last symb and checking if last symbol not visible - redefine line
-    if(line->head - line->length >= 0) {
+    if(line->head - line->length > 0) {
       outSymb(line->x, line->head - line->length, "", L' ');
     }    
   }
