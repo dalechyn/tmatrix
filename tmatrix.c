@@ -60,18 +60,21 @@ wchar_t * generateRain(wchar_t chars[symb_count], int length) {
   return arr;
 }
 
-void randomizeDL(struct Digital * line, wchar_t chars[symb_count]) {
-  for(int i = 0; i < dig_length; i++)
-    //mixing chars with 10% chance
-    if(get_rand_in_range(0, 9) == 0)
-      line->data[i] = randomChar(chars);
-}
-
 void outSymb(int x, int y, char * prefix, wchar_t symb) {
   wprintf(L"\n\033[%d;%dH%s%lc\n", y, x, prefix, symb);
 }
 
-int moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count]) {
+void randomizeDL(struct Digital * line, wchar_t chars[symb_count], int y_size) {
+  for(int i = 0; i < dig_length; i++)
+    //mixing chars with 10% chance, also check if it's visible
+    if(get_rand_in_range(0, 9) == 0 && line->head - i > 0 && line->head - i < y_size - 1) {
+      line->data[i] = randomChar(chars);
+      //redraw it 
+      outSymb(line->x, line->head - i, (i > 2 ? COLOR_GREEN : (i > 0 ? COLOR_WHITE  : COLOR_BOLD_WHITE)), line->data[i]);
+    }
+}
+
+void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count]) {
   line->tick++;
   int willMove = 0;
   //draw operations are made on 0-4st elements in line
@@ -80,10 +83,23 @@ int moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count]) 
     line->head++;
     line->tick = 0;
   }
+
+  //check if line hasn't gone past bottom of the terminal
+  if(line->head - line->length >= y_size - 1) {
+    //if so respawn
+    //free its data
+    free(line->data);
+    line->length = get_rand_in_range(5, y_size / 2);
+    line->head = get_rand_in_range(-30, -1);
+    line->speed = get_rand_in_range(1, 6);
+    line->tick = 0;
+    line->data = generateRain(chars, dig_length);
+  }
+
   //mixing DL
-  randomizeDL(line, chars);
+  randomizeDL(line, chars, y_size);
   if(line->head >= 0 && willMove) {
-    //move all symbols by 1 to create empty space at the 0
+            //move all symbols by 1 to create empty space at the 0
     for(int i = line->length - 1; i >= 1; i--) line->data[i] = line->data[i - 1];
     line->data[0] = randomChar(chars);
     //printing first white bold symbol
@@ -104,17 +120,8 @@ int moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count]) 
     //erasing last symb and checking if last symbol not visible - redefine line
     if(line->head - line->length >= 0) {
       outSymb(line->x, line->head - line->length, "", L' ');
-    } else if(line->head - line->length < y_size - 1 && line->head > y_size - 1) { //means it's under screen 
-      return 1;
-    }
-    //other are green unbold
-    /*for(int i = 3; i < line->length; i++) {
-      if(line->head - i > 0 && line->head - i < y_size - 1) {
-        wprintf(L"\n\033[%d;%dH%s%lc\n", line->head - i, line->x, COLOR_GREEN, line->data[i]);
-      }
-    }*/
+    }    
   }
-  return 0;
 }
 
 int main() {
@@ -148,10 +155,7 @@ int main() {
     //going through all digital lines
     for(int i = 0; i < max_x; i++) {
       //print them, if line ended, redefine it
-      if(moveAndDrawDL(digitals + i, max_y, chars)) {
-        int l = get_rand_in_range(5, max_y/2);
-        digitals[i] = (struct Digital){i, get_rand_in_range(-30, -1), l, 0, get_rand_in_range(1, 6), generateRain(chars, dig_length)};
-      }
+      moveAndDrawDL(digitals + i, max_y, chars);
     }
     usleep(speed_delay);
     //system("tput reset"); 
