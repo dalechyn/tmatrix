@@ -7,9 +7,13 @@ Download repo's zip and unpack it, or using `git` you can do next:
 If you have no folder for local repos:
 
 `mkdir ~/repos/`
+
 `cd ~/repos/`
+
 `git clone git@github.com:vladik2738/matrix.git`
+
 `make`
+
 `./tm`
 
 # Install dependencies:
@@ -23,6 +27,7 @@ If you have no folder for local repos:
 # Debug matrix
 
 `make debug`
+
 `gdb dtm`
 
 # Clean-up
