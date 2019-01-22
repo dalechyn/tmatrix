@@ -11,7 +11,7 @@
 
 #define dig_length 14
 #define symb_count 72
-#define speed_delay 40000
+#define speed_delay 80000
 
 struct Digital {
   int x;
@@ -27,7 +27,7 @@ void getTermSize(int *x, int *y) {
   *y = w.ws_row;
 }
 
-void gotoxy(int row, int col) {
+void gotoxy(int col, int row) {
   printf("\n\033[%d;%dH", row, col);
 }
 
@@ -56,8 +56,8 @@ wchar_t * generateRain(wchar_t chars[symb_count], int length) {
 
 void randomizeDL(struct Digital * line, wchar_t chars[symb_count]) {
   for(int i = 0; i < dig_length; i++)
-    //mixing chars with 33% chance
-    if(get_rand_in_range(0, 2) == 0)
+    //mixing chars with 10% chance
+    if(get_rand_in_range(0, 9) == 0)
       line->data[i] = randomChar(chars);
 }
 
@@ -65,29 +65,25 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
   line->head++;
   //mixing DL
   randomizeDL(line, chars);
-  if(line->head >= 0 && line->head < y_size) {
+  if(line->head >= 0) {
     //move all symbols by 1 to create empty space at the 0
-    for(int i = 0; i < symb_count - 1; i++) line->data[i + 1] = line->data[i];
+    for(int i = line->length - 1; i >= 1; i--) line->data[i] = line->data[i - 1];
     line->data[0] = randomChar(chars);
-    //initializing color buffer, it has fixed size of 68 bytes
-    wchar_t buff[18];
     //printing first white bold symbol
-    gotoxy(line->x, line->head);
-    wprintf(L"%s%lc", "\033[01;38;05;15m", line->data[0]);
+    //gotoxy(line->x, line->head);
+    if(line->head < y_size - 1)
+      wprintf(L"\n\033[%d;%dH%s%lc\n", line->head, line->x, "\033[01;38;05;15m", line->data[0]);
     //next two symbols are also white but not bold
-    if(line->head - 1 >= 0 && line->head - 1 < y_size) {
-      gotoxy(line->x, line->head - 1);
-      wprintf(L"%s%lc", "\033[38;05;15m", line->data[1]);
+    if(line->head - 1 >= 0 && line->head - 1 < y_size - 1) {
+      wprintf(L"\n\033[%d;%dH%s%lc\n", line->head - 1, line->x, "\033[00;38;05;15m", line->data[1]);
     }
-    if(line->head - 2 >= 0 && line->head - 2 < y_size) {
-      gotoxy(line->x, line->head - 2);
-      wprintf(L"%s%lc", "\033[38;05;15m", line->data[2]);
+    if(line->head - 2 >= 0 && line->head - 2 < y_size - 1) {
+       wprintf(L"\n\033[%d;%dH%s%lc\n", line->head - 2, line->x, "\033[00;38;05;15m", line->data[2]);
     }
     //other are green unbold
-    for(int i = 3; i < symb_count; i++) {
-      if(line->head - i > 0 && line->head - i < y_size) {
-       gotoxy(line->x, line->head - i);
-       wprintf(L"%s%lc", "\033[38;05;46m", line->data[i]);     
+    for(int i = 3; i < line->length; i++) {
+      if(line->head - i > 0 && line->head - i < y_size - 1) {
+        wprintf(L"\n\033[%d;%dH%s%lc\n", line->head - i, line->x, "\033[00;38;05;46m", line->data[i]);
       }
     }
   }
@@ -108,18 +104,15 @@ int main() {
   srandom(time(NULL));
   setlocale(LC_ALL, "");
 
-  wprintf(L"%sWhy? 为什么？\n", "\033[01;38;05;46m");
-
-  
   int max_x = 0, max_y = 0;
   getTermSize(&max_x, &max_y);
   
   struct Digital * digitals = malloc(sizeof(struct Digital) * max_x);
 
   // init digital lines columns
-  for(int j = 0; j < max_x; j++) {
-    int l = get_rand_in_range(0, max_y);
-    digitals[j] = (struct Digital){j, get_rand_in_range(-10, -1), l, generateRain(chars, dig_length)};
+  for(int j = 0; j <= max_x; j++) {
+    int l = get_rand_in_range(5, max_y/2);
+    digitals[j] = (struct Digital){j, get_rand_in_range(-30, -1), l, generateRain(chars, dig_length)};
   }
 
   while(1) {
