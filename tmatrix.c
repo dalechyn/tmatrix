@@ -1,9 +1,9 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <termios.h>
+#include <sys/ioctl.h>
 #include <stdlib.h>
-#include <ncurses.h>
-#include <ncursesw/curses.h>
 #include <wchar.h>
 #include <locale.h>
 #include <malloc.h>
@@ -11,7 +11,7 @@
 
 #define dig_length 14
 #define symb_count 72
-#define speed_delay 4000000
+#define speed_delay 40000
 
 struct Digital {
   int x;
@@ -19,6 +19,17 @@ struct Digital {
   int length;
   wchar_t * data;
 };
+
+void getTermSize(int *x, int *y) {
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+  *x = w.ws_col;
+  *y = w.ws_row;
+}
+
+void gotoxy(int row, int col) {
+  printf("\n\033[%d;%dH", row, col);
+}
 
 void colorizeSymbol(wchar_t * destination, wchar_t c, wchar_t * prefix) {
   const int sizePrefix = wcslen(prefix) * sizeof(wchar_t);
@@ -61,22 +72,22 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
     //initializing color buffer, it has fixed size of 68 bytes
     wchar_t buff[18];
     //printing first white bold symbol
-    colorizeSymbol(buff, line->data[0], L"\033[01;38;05;15m");
-    mvaddwstr(line->head, line->x, buff);
+    gotoxy(line->x, line->head);
+    wprintf(L"%s%lc", "\033[01;38;05;15m", line->data[0]);
     //next two symbols are also white but not bold
     if(line->head - 1 >= 0 && line->head - 1 < y_size) {
-      colorizeSymbol(buff, line->data[1], L"\033[38;05;15m");
-      mvaddwstr(line->head - 1, line->x, buff);
+      gotoxy(line->x, line->head - 1);
+      wprintf(L"%s%lc", "\033[38;05;15m", line->data[1]);
     }
     if(line->head - 2 >= 0 && line->head - 2 < y_size) {
-      colorizeSymbol(buff, line->data[2], L"\033[38;05;15m");
-      mvaddwstr(line->head - 2, line->x, buff);
+      gotoxy(line->x, line->head - 2);
+      wprintf(L"%s%lc", "\033[38;05;15m", line->data[2]);
     }
     //other are green unbold
     for(int i = 3; i < symb_count; i++) {
       if(line->head - i > 0 && line->head - i < y_size) {
-        colorizeSymbol(buff, line->data[i], L"\033[38;05;46m");
-        mvaddwstr(line->head - i, line->x, buff);
+       gotoxy(line->x, line->head - i);
+       wprintf(L"%s%lc", "\033[38;05;46m", line->data[i]);     
       }
     }
   }
@@ -100,36 +111,8 @@ int main() {
   wprintf(L"%sWhy? 为什么？\n", "\033[01;38;05;46m");
 
   
-  initscr();
-  noecho();
-  curs_set(0);
-
-  if (has_colors()) {
-    start_color();
-    if (use_default_colors() != ERR) {
-      init_pair(COLOR_BLACK, -1, -1);
-      init_pair(COLOR_GREEN, COLOR_GREEN, -1);
-      init_pair(COLOR_WHITE, COLOR_WHITE, -1);
-      init_pair(COLOR_RED, COLOR_RED, -1);
-      init_pair(COLOR_CYAN, COLOR_CYAN, -1);
-      init_pair(COLOR_MAGENTA, COLOR_MAGENTA, -1);
-      init_pair(COLOR_BLUE, COLOR_BLUE, -1);
-       init_pair(COLOR_YELLOW, COLOR_YELLOW, -1);
-    } else {
-      init_pair(COLOR_BLACK, COLOR_BLACK, COLOR_BLACK);
-      init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);
-      init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
-      init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);
-      init_pair(COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);
-      init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
-      init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
-      init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
-      }
-    }
-
-
   int max_x = 0, max_y = 0;
-  getmaxyx(stdscr, max_y, max_x);
+  getTermSize(&max_x, &max_y);
   
   struct Digital * digitals = malloc(sizeof(struct Digital) * max_x);
 
@@ -146,10 +129,9 @@ int main() {
       moveAndDrawDL(digitals + i, max_y, chars);
     }
     usleep(speed_delay);
-    refresh(); 
+    system("tput reset"); 
   }
 
-  endwin();
   return 0;
 }
 
