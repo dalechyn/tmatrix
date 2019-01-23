@@ -1,4 +1,4 @@
-# matrix
+# TMatrix
 Matrix representation in linux term just as in "The Matrix" film. At this moment available only for Linux.
 
 # How to download?
@@ -18,17 +18,17 @@ If you have no folder for local repos:
 
 If you close matrix with Ctrl+C, don't forget to clean the terminal! 
 
-`clear`
+`tput reset`
 
 # Install dependencies:
 `make install`
 
-# Run matrix
+# Run TMatrix
 `make`
 
 `./tm`
 
-# Debug matrix
+# Debug TMatrix
 
 `make debug`
 
