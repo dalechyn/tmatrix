@@ -33,6 +33,24 @@ struct Digital {
   wchar_t * data;
 };
 
+void printHelp() {
+      printf("TMatrix help:\n");
+      printf("\tColors:\n");
+      printf("\t\t-a: AQUA\n");
+      printf("\t\t-b: BLUE\n");
+      printf("\t\t-c: CYAN\n");
+      printf("\t\t-p: PINK\n");
+      printf("\t\t-w: WHITE\n");
+      printf("\t\t-r: RED\n");
+      printf("\t\t-y: YELLOW\n");
+      printf("\tProgram options:\n");
+      printf("\t\t-chance [number]: Set random symbol chance spawn (1/chance)\n");
+      printf("\t\t-speed [number]: Set speed of tmatrix (ms)\n");
+      printf("\tOther:\n");
+      printf("\t\t--help: Show help menu\n");
+      printf("\t\t-v: Version\n");
+}
+
 void getTermSize(int *x, int *y) {
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -132,25 +150,13 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count],
 }
 
 int main(int argc, char ** argv) {
-  int argi = 0;
+  int argi = 1;
   char * accent = COLOR_GREEN;
   int symbolChangeChance = 20;
   int refreshDelay = 50000;
   while(argi < argc) {
-    if(areEqual(argv[argi], "-h")) {
-      printf("TMatrix help:\n");
-      printf("\tColors:\n");
-      printf("\t\t-a: AQUA\n");
-      printf("\t\t-b: BLUE\n");
-      printf("\t\t-c: CYAN\n");
-      printf("\t\t-r: RED\n");
-      printf("\t\t-y: YELLOW\n");
-      printf("\tProgram options:\n");
-      printf("\t\t-chance [number]: Set random symbol chance spawn (1/chance)\n");
-      printf("\t\t-speed [number]: Set speed of tmatrix (ms)\n");
-      printf("\tOther:\n");
-      printf("\t\t-h: Show help menu\n");
-      printf("\t\t-v: Version\n");
+    if(areEqual(argv[argi], "--help")) {
+      printHelp();
       return 0;
     } else if(areEqual(argv[argi], "-v")) {
       printf("TMatrix, version %s, created by Vladislav Dalechyn\n", VERSION);
@@ -167,6 +173,8 @@ int main(int argc, char ** argv) {
       accent = COLOR_CYAN;
     } else if(areEqual(argv[argi], "-y")) {
       accent = COLOR_YELLOW;
+    } else if(areEqual(argv[argi], "-w")) {
+      accent = COLOR_WHITE;
     } else if(areEqual(argv[argi], "-chance")) {
       symbolChangeChance = atoi(argv[argi + 1]);
       if(symbolChangeChance == 0) {
@@ -176,9 +184,12 @@ int main(int argc, char ** argv) {
     } else if(areEqual(argv[argi], "-speed")) {
       refreshDelay = atoi(argv[argi + 1]) * 1000;
       if(refreshDelay == 0) {
-        printf("Speed is incorrect");
+        printf("Speed is incorrect\n");
         return 0;
       }
+    } else {
+      printf("Wrong argument.\nSee --help for help page.\n");
+      return 0;
     }
     argi++;
   }
