@@ -9,8 +9,8 @@
 #include <malloc.h>
 #include <time.h>
 
-#define symb_count 72
-#define speed_delay 100000
+#define symb_count 70
+#define speed_delay 50000
 
 #define COLOR_GREEN "\033[00;38;05;46m"
 #define COLOR_BOLD_WHITE "\033[01;38;05;15m"
@@ -99,7 +99,6 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
     for(int i = line->length - 1; i >= 1; i--) line->data[i] = line->data[i - 1];
     line->data[0] = randomChar(chars);
     //printing first white bold symbol
-    //gotoxy(line->x, line->head);
     if(line->head > 0 && line->head < y_size - 1)
       outSymb(line->x, line->head, COLOR_BOLD_WHITE, line->data[0]);
     //next two symbols are also white but not bold
@@ -127,8 +126,8 @@ int main() {
     L'ｷ', L'ﾑ', L'ﾕ', L'ﾗ', L'ｾ', L'ﾈ', L'ｽ', L'ﾀ', L'ﾇ', L'ﾍ', L'ｦ',
     L'ｲ', L'ｸ', L'ｺ', L'ｿ', L'ﾁ', L'ﾄ', L'ﾉ', L'ﾌ', L'ﾔ', L'ﾖ', L'ﾙ',
     L'ﾚ', L'ﾛ', L'ﾝ', L'0', L'1', L'2', L'3', L'4', L'5', L'7', L'8',
-    L'9', L':', L'・', L'.', L'"', L'=', L'*', L'+', L'-', L'<', L'>',
-    L'¦', L'｜', L'╌', L'ç', L'ﾘ', L'ｸ'
+    L'9', L':', L'.', L'"', L'=', L'*', L'+', L'-', L'<', L'>',
+    L'¦', L'╌', L'ç', L'ﾘ', L'ｸ'
   };
 
   //Random numbers seed
