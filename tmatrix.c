@@ -139,6 +139,7 @@ int main() {
   getTermSize(&max_x, &max_y);
   struct Digital * digitals = malloc(sizeof(struct Digital) * max_x);
   system("tput reset");
+  system("tput civis");
   // init digital lines columns
   for(int j = 1; j <= max_x; j++) {
     int l = get_rand_in_range(5, max_y/2);
