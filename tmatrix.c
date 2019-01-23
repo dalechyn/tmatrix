@@ -10,11 +10,19 @@
 #include <time.h>
 
 #define symb_count 70
-#define speed_delay 50000
+#define colors_count 3
+
+#define VERSION "v0.2-alpha"
 
 #define COLOR_GREEN "\033[00;38;05;46m"
 #define COLOR_BOLD_WHITE "\033[01;38;05;15m"
 #define COLOR_WHITE "\033[00;38;05;15m"
+#define COLOR_RED "\033[38;05;196m"
+#define COLOR_PINK "\033[38;05;201m"
+#define COLOR_YELLOW "\033[38;05;226m"
+#define COLOR_CYAN "\033[38;05;129m"
+#define COLOR_BLUE "\033[38;05;68m"
+#define COLOR_AQUA "\033[38;05;51m"
 
 struct Digital {
   int x;
@@ -32,11 +40,15 @@ void getTermSize(int *x, int *y) {
   *y = w.ws_row;
 }
 
+int areEqual(char * s1, char * s2) {
+  return strcmp(s1, s2) == 0;
+}
+
 void colorizeSymbol(wchar_t * destination, wchar_t c, wchar_t * prefix) {
   const int sizePrefix = wcslen(prefix) * sizeof(wchar_t);
   memcpy(destination, prefix, sizePrefix);
   destination[sizePrefix] = c;
-  destination[sizePrefix + 1] = L'\n';
+  //destination[sizePrefix + 1] = L'\n';
 }
 
 int get_rand_in_range(int min, int max) {
@@ -59,17 +71,17 @@ void outSymb(int x, int y, char * prefix, wchar_t symb) {
   wprintf(L"\n\033[%d;%dH%s%lc\n", y, x, prefix, symb);
 }
 
-void randomizeDL(struct Digital * line, wchar_t chars[symb_count], int y_size) {
+void randomizeDL(struct Digital * line, wchar_t chars[symb_count], int y_size, char * accent, int symbolChangeChance) {
   for(int i = 0; i < line->length; i++)
     //mixing chars with 5% chance, also check if it's visible
-    if(get_rand_in_range(0, 19) == 0 && line->head - i > 0 && line->head - i < y_size - 1) {
+    if(get_rand_in_range(0, symbolChangeChance - 1) == 0 && line->head - i > 0 && line->head - i < y_size - 1) {
       line->data[i] = randomChar(chars);
       //redraw it 
-      outSymb(line->x, line->head - i, (i > 2 ? COLOR_GREEN : (i > 0 ? COLOR_WHITE  : COLOR_BOLD_WHITE)), line->data[i]);
+      outSymb(line->x, line->head - i, (i > 2 ? accent: (i > 0 ? COLOR_WHITE  : COLOR_BOLD_WHITE)), line->data[i]);
     }
 }
 
-void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count]) {
+void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count], char * accent, int symbolChangeChance) {
   line->tick++;
   int willMove = 0;
   //draw operations are made on 0-4st elements in line
@@ -93,7 +105,7 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
   }
 
   //mixing DL
-  randomizeDL(line, chars, y_size);
+  randomizeDL(line, chars, y_size, accent, symbolChangeChance);
   if(line->head > 0 && willMove) {
             //move all symbols by 1 to create empty space at the 0
     for(int i = line->length - 1; i >= 1; i--) line->data[i] = line->data[i - 1];
@@ -110,7 +122,7 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
 
     //printing green symb
     if(line->head - 3 > 0 && line->head - 3 < y_size - 1)
-      outSymb(line->x, line->head - 3, COLOR_GREEN, line->data[3]);
+      outSymb(line->x, line->head - 3, accent, line->data[3]);
 
     //erasing last symb and checking if last symbol not visible - redefine line
     if(line->head - line->length > 0) {
@@ -119,7 +131,57 @@ void moveAndDrawDL(struct Digital * line, int y_size, wchar_t chars[symb_count])
   }
 }
 
-int main() {
+int main(int argc, char ** argv) {
+  int argi = 0;
+  char * accent = COLOR_GREEN;
+  int symbolChangeChance = 20;
+  int refreshDelay = 50000;
+  while(argi < argc) {
+    if(areEqual(argv[argi], "-h")) {
+      printf("TMatrix help:\n");
+      printf("\tColors:\n");
+      printf("\t\t-a: AQUA\n");
+      printf("\t\t-b: BLUE\n");
+      printf("\t\t-c: CYAN\n");
+      printf("\t\t-r: RED\n");
+      printf("\t\t-y: YELLOW\n");
+      printf("\tProgram options:\n");
+      printf("\t\t-chance [number]: Set random symbol chance spawn (1/chance)\n");
+      printf("\t\t-speed [number]: Set speed of tmatrix (ms)\n");
+      printf("\tOther:\n");
+      printf("\t\t-h: Show help menu\n");
+      printf("\t\t-v: Version\n");
+      return 0;
+    } else if(areEqual(argv[argi], "-v")) {
+      printf("TMatrix, version %s, created by Vladislav Dalechyn\n", VERSION);
+      return 0;
+    } else if(areEqual(argv[argi], "-r")) {
+      accent = COLOR_RED;
+    } else if(areEqual(argv[argi], "-b")) {
+      accent = COLOR_BLUE;
+    } else if(areEqual(argv[argi], "-a")) {
+      accent = COLOR_AQUA;
+    } else if(areEqual(argv[argi], "-p")) {
+      accent = COLOR_PINK;
+    } else if(areEqual(argv[argi], "-c")) {
+      accent = COLOR_CYAN;
+    } else if(areEqual(argv[argi], "-y")) {
+      accent = COLOR_YELLOW;
+    } else if(areEqual(argv[argi], "-chance")) {
+      symbolChangeChance = atoi(argv[argi + 1]);
+      if(symbolChangeChance == 0) {
+        printf("Symbol change chance is incorrect\n");
+        return 0;
+      }
+    } else if(areEqual(argv[argi], "-speed")) {
+      refreshDelay = atoi(argv[argi + 1]) * 1000;
+      if(refreshDelay == 0) {
+        printf("Speed is incorrect");
+        return 0;
+      }
+    }
+    argi++;
+  }
   wchar_t chars[symb_count] = {
     L'ﾊ', L'ﾐ', L'ﾋ', L'ｰ', L'ｳ', L'ｼ', L'ﾅ', L'ﾓ', L'ﾆ', L'ｻ', L'ﾜ',
     L'ﾂ', L'ｵ', L'ﾘ', L'ｱ', L'ﾎ', L'ﾃ', L'ﾏ', L'ｹ', L'ﾒ', L'ｴ', L'ｶ',
@@ -149,9 +211,9 @@ int main() {
     //going through all digital lines
     for(int i = 0; i < max_x; i++) {
       //print them, if line ended, redefine it
-      moveAndDrawDL(digitals + i, max_y, chars);
+      moveAndDrawDL(digitals + i, max_y, chars, accent, symbolChangeChance);
     }
-    usleep(speed_delay);
+    usleep(refreshDelay);
     //system("tput reset"); 
   }
 
