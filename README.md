@@ -10,7 +10,7 @@ If you have no folder for local repos:
 
 `cd ~/repos/`
 
-`git clone git@github.com:vladik2738/matrix.git`
+`git clone git@github.com:vladik2738/tmatrix.git`
 
 `make`
 
@@ -27,6 +27,10 @@ If you close matrix with Ctrl+C, don't forget to clean the terminal!
 `make`
 
 `./tm`
+
+# Help menu
+
+`./tm -h`
 
 # Debug TMatrix
 
