@@ -30,7 +30,7 @@ If you close matrix with Ctrl+C, don't forget to clean the terminal!
 
 # Help menu
 
-`./tm -h`
+`./tm --help`
 
 # Debug TMatrix
 
