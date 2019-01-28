@@ -44,8 +44,8 @@ void printHelp() {
       printf("\t\t-r: RED\n");
       printf("\t\t-y: YELLOW\n");
       printf("\tProgram options:\n");
-      printf("\t\t-chance [number]: Set random symbol chance spawn (1/chance)\n");
-      printf("\t\t-speed [number]: Set speed of tmatrix (ms)\n");
+      printf("\t\t--chance [number]: Set random symbol chance spawn (1/chance)\n");
+      printf("\t\t--speed [number]: Set speed of tmatrix (ms)\n");
       printf("\tOther:\n");
       printf("\t\t--help: Show help menu\n");
       printf("\t\t-v: Version\n");
@@ -175,18 +175,20 @@ int main(int argc, char ** argv) {
       accent = COLOR_YELLOW;
     } else if(areEqual(argv[argi], "-w")) {
       accent = COLOR_WHITE;
-    } else if(areEqual(argv[argi], "-chance")) {
+    } else if(areEqual(argv[argi], "--chance")) {
       symbolChangeChance = atoi(argv[argi + 1]);
       if(symbolChangeChance == 0) {
         printf("Symbol change chance is incorrect\n");
         return 0;
       }
-    } else if(areEqual(argv[argi], "-speed")) {
+      argi++;
+    } else if(areEqual(argv[argi], "--speed")) {
       refreshDelay = atoi(argv[argi + 1]) * 1000;
       if(refreshDelay == 0) {
         printf("Speed is incorrect\n");
         return 0;
       }
+      argi++;
     } else {
       printf("Wrong argument.\nSee --help for help page.\n");
       return 0;
