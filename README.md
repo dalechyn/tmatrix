@@ -1,7 +1,7 @@
 # TMatrix
 Matrix representation in linux term just as in "The Matrix" film. At this moment available only for Linux.
 
-# How to download?
+# How to use?
 Download repo's zip and unpack it, or using `git` you can do next:
 
 If you have no folder for local repos:
