@@ -18,7 +18,7 @@ If you have no folder for local repos:
 
 If you close matrix with Ctrl+C, don't forget to clean the terminal! 
 
-`./rs` or `tput reset`
+`tput reset`
 
 # Install dependencies:
 `make install`
