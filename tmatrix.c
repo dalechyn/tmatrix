@@ -14,7 +14,7 @@
 #define symb_count 70
 #define colors_count 3
 
-#define VERSION "v0.3-alpha"
+#define VERSION "v0.1-beta"
 
 #define COLOR_GREEN "\033[00;38;05;46m"
 #define COLOR_BOLD_WHITE "\033[01;38;05;15m"
