@@ -14,7 +14,7 @@ If you have no folder for local repos:
 
 `make`
 
-`./tm`
+`./tmatrix`
 
 If you close matrix with Ctrl+C, don't forget to clean the terminal! 
 
@@ -26,7 +26,7 @@ If you close matrix with Ctrl+C, don't forget to clean the terminal!
 # Run TMatrix
 `make`
 
-`./tm`
+`./tmatrix`
 
 # Help menu
 

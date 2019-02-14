@@ -1,4 +1,4 @@
-default: tm
+default: tmatrix
 
 debug:
 	gcc -g tmatrix.c -o dtm
@@ -6,9 +6,9 @@ debug:
 tmatrix.o : tmatrix.c
 	gcc tmatrix.c -c
 
-tm : tmatrix.o
-	gcc tmatrix.o -o tm
+tmatrix : tmatrix.o
+	gcc tmatrix.o -o tmatrix
 
 clean:
-	rm -f tm
+	rm -f tmatrix
 	rm -f tmatrix.o
