@@ -28,8 +28,16 @@
 
 static volatile int running = 1;
 
+void getTermSize(int *x, int *y) {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    *x = w.ws_col;
+    *y = w.ws_row;
+}
+
 void intHandler(int dummy) {
-    system("tput reset");
+	int x, y;
+	system("tput reset");
     running = 0;   
 }
 
@@ -59,13 +67,6 @@ void printHelp() {
     printf("\tOther:\n");
     printf("\t\t--help: Show help menu\n");
     printf("\t\t-v: Version\n");
-}
-
-void getTermSize(int *x, int *y) {
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    *x = w.ws_col;
-    *y = w.ws_row;
 }
 
 int areEqual(char * s1, char * s2) {
@@ -233,8 +234,7 @@ int main(int argc, char ** argv) {
     int max_x = 0, max_y = 0;
     getTermSize(&max_x, &max_y);
     struct Digital * digitals = malloc(sizeof(struct Digital) * max_x);
-    system("tput reset");
-    system("tput civis");
+    system("tput reset && tput civis");
  
     if(!dlLengthSet) dlLength = max_y / 2; 
 
@@ -250,7 +250,7 @@ int main(int argc, char ** argv) {
         int new_x = 0, new_y = 0;
         getTermSize(&new_x, &new_y);
         if(max_x != new_x || max_y != new_y) {
-            system("tput reset");
+            system("tput reset && tput civis");
             max_y = new_y;
             max_x = new_x;
             if(!dlLengthSet) dlLength = max_y / 2;
