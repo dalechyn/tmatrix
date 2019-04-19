@@ -7,10 +7,10 @@ Matrix representation in linux term just as in "The Matrix" film. At this moment
 
 `./tmatrix`
 
-# Install dependencies:
-`make install`
+# Install:
+`sudo make install`
 
-# Run TMatrix
+# Run TMatrix locally
 `make`
 
 `./tmatrix`
