@@ -1,17 +1,11 @@
-default: tmatrix
+prefix = /usr/local
 
-debug :
-	gcc -g tmatrix.c -o dtm
+all:
+	$(CC) -o tmatrix tmatrix.c
 
-tmatrix.o : tmatrix.c
-	gcc tmatrix.c -c
-
-tmatrix : tmatrix.o
-	gcc tmatrix.o -o tmatrix
-
-install : tmatrix
-	cp tmatrix /usr/bin/
+install:
+	install tmatrix $(DESTDIR)$(prefix)/bin
+	install tmatrix.1 $(DESTDIR)$(prefix)/share/man/man1
 
 clean:
 	rm -f tmatrix
-	rm -f tmatrix.o
