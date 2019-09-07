@@ -13,7 +13,7 @@
 
 #define symb_count 70
 
-#define VERSION "v0.2"
+#define VERSION "v1.1"
 
 #define COLOR_GREEN "\033[00;38;05;46m"
 #define COLOR_BOLD_WHITE "\033[01;38;05;15m"
@@ -251,6 +251,7 @@ int main(int argc, char** argv) {
         // resize check
         int new_x = 0, new_y = 0;
         get_term_size(&new_x, &new_y);
+		const char* print_buff = malloc(new_x * new_y * 10)
         if (max_x != new_x || max_y != new_y) {
             system("tput reset && tput civis");
             max_y = new_y;
