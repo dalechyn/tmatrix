@@ -251,7 +251,6 @@ int main(int argc, char** argv) {
         // resize check
         int new_x = 0, new_y = 0;
         get_term_size(&new_x, &new_y);
-		const char* print_buff = malloc(new_x * new_y * 10)
         if (max_x != new_x || max_y != new_y) {
             system("tput reset && tput civis");
             max_y = new_y;
